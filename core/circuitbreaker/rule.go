@@ -17,6 +17,8 @@ const (
 	ErrorRatio
 	// ErrorCount strategy changes the circuit breaker state based on error amount
 	ErrorCount
+	// Last entry of strategies
+	UnsupportedStrategy
 )
 
 func (s Strategy) String() string {

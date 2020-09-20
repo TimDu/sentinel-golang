@@ -77,7 +77,7 @@ func TestCircuitBreakerSlotIntegration_Normal(t *testing.T) {
 		Threshold:        0.1,
 	}
 
-	_, err = circuitbreaker.LoadRules([]*circuitbreaker.Rule{cbRule1, cbRule2})
+	_, err, _ = circuitbreaker.LoadRules([]*circuitbreaker.Rule{cbRule1, cbRule2})
 	stateListener := &StateChangeListenerMock{}
 	circuitbreaker.RegisterStateChangeListeners(stateListener)
 	if err != nil {
@@ -163,7 +163,7 @@ func TestCircuitBreakerSlotIntegration_Probe_Succeed(t *testing.T) {
 		Threshold:        0.1,
 	}
 
-	_, err = circuitbreaker.LoadRules([]*circuitbreaker.Rule{cbRule1})
+	_, err, _ = circuitbreaker.LoadRules([]*circuitbreaker.Rule{cbRule1})
 	stateListener := &StateChangeListenerMock{}
 	circuitbreaker.RegisterStateChangeListeners(stateListener)
 	if err != nil {
@@ -242,7 +242,7 @@ func TestCircuitBreakerSlotIntegration_Concurrency(t *testing.T) {
 		Threshold:        0.1,
 	}
 
-	_, err = circuitbreaker.LoadRules([]*circuitbreaker.Rule{cbRule1, cbRule2})
+	_, err, _ = circuitbreaker.LoadRules([]*circuitbreaker.Rule{cbRule1, cbRule2})
 	stateListener := &StateChangeListenerMock{}
 	circuitbreaker.RegisterStateChangeListeners(stateListener)
 	if err != nil {
