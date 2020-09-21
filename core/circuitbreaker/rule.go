@@ -78,7 +78,7 @@ func (r *Rule) ResourceName() string {
 	return r.Resource
 }
 
-func (r *Rule) isEqualsToBase(newRule *Rule) bool {
+func (r *Rule) equalsToBase(newRule *Rule) bool {
 	if newRule == nil {
 		return false
 	}
@@ -86,8 +86,8 @@ func (r *Rule) isEqualsToBase(newRule *Rule) bool {
 		r.MinRequestAmount == newRule.MinRequestAmount && r.StatIntervalMs == newRule.StatIntervalMs
 }
 
-func (r *Rule) isEqualsTo(newRule *Rule) bool {
-	if !r.isEqualsToBase(newRule) {
+func (r *Rule) equalsTo(newRule *Rule) bool {
+	if !r.equalsToBase(newRule) {
 		return false
 	}
 

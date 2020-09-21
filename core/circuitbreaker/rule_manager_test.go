@@ -315,7 +315,7 @@ func Test_onRuleUpdate_invalid(t *testing.T) {
 	breakerRules = make(map[string][]*Rule)
 }
 
-func Test_LoadRules(t *testing.T) {
+func TestLoadRules(t *testing.T) {
 	assert := assert.New(t)
 
 	t.Run("Test_LoadRules", func(t *testing.T) {

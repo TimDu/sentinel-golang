@@ -140,7 +140,7 @@ func calculateReuseIndexFor(r *Rule, oldResCbs []CircuitBreaker) (equalIdx, reus
 
 	for idx, oldTc := range oldResCbs {
 		oldRule := oldTc.BoundRule()
-		if oldRule.isEqualsTo(r) {
+		if oldRule.equalsTo(r) {
 			// break if there is equivalent rule
 			equalIdx = idx
 			break
@@ -210,7 +210,7 @@ func onRuleUpdate(rules []*Rule) (ret bool, err error, failedRules []*Rule) {
 
 		// Deduplicate loading rules
 		for _, cmpRule := range ruleSet {
-			if rule.isEqualsTo(cmpRule) {
+			if rule.equalsTo(cmpRule) {
 				rule = nil
 				break
 			}
