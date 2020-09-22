@@ -115,3 +115,41 @@ func (r *Rule) String() string {
 func (r *Rule) ResourceName() string {
 	return r.Resource
 }
+
+func (r *Rule) equalsToBase(newRule *Rule) bool {
+	if newRule == nil {
+		return false
+	}
+	return r.Resource == newRule.Resource && r.MetricType == newRule.MetricType && r.TokenCalculateStrategy == newRule.TokenCalculateStrategy &&
+		r.ControlBehavior == newRule.ControlBehavior && r.RelationStrategy == newRule.RelationStrategy
+}
+
+func (r *Rule) equalsTo(newRule *Rule) bool {
+	if (!r.equalsToBase(newRule)) {
+		return false
+	}
+	switch r.TokenCalculateStrategy {
+	case Direct:
+		if r.Count != newRule.Count {
+		        return false
+		}
+	case WarmUp:
+		if r.Count != newRule.Count ||
+		    r.WarmUpPeriodSec != newRule.WarmUpPeriodSec ||
+		    r.WarmUpColdFactor != newRule.WarmUpColdFactor {
+			return false
+		}
+	}
+	switch r.ControlBehavior {
+	case Reject:
+	case Throttling:
+		if r.MaxQueueingTimeMs != newRule.MaxQueueingTimeMs {
+		    return false
+		}
+	}
+	if r.RelationStrategy == AssociatedResource && r.RefResource != newRule.RefResource {
+		return false
+	}
+
+	return true
+}

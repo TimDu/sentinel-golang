@@ -72,7 +72,9 @@ func logRuleUpdate(m TrafficControllerMap) {
 	}
 }
 
-func onRuleUpdate(rules []*Rule) (err error) {
+func onRuleUpdate(rules []*Rule) (ret bool, err error, failedRules []*Rule) {
+	var start uint64
+	var m TrafficControllerMap
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -80,31 +82,65 @@ func onRuleUpdate(rules []*Rule) (err error) {
 			if !ok {
 				err = fmt.Errorf("%v", r)
 			}
-		}
-	}()
-
-	m := buildFlowMap(rules)
-
-	start := util.CurrentTimeNano()
-	tcMux.Lock()
-	defer func() {
-		tcMux.Unlock()
-		if r := recover(); r != nil {
+			failedRules = rules
 			return
 		}
-		logging.Debugf("Updating flow rule spends %d ns.", util.CurrentTimeNano()-start)
+		logging.Debugf("Updating flow rule spends %d ns.", util.CurrentTimeNano() - start)
 		logRuleUpdate(m)
 	}()
 
+	m, failedRules = buildFlowMap(rules)
+
+	start = util.CurrentTimeNano()
+	tcMux.Lock()
+	defer tcMux.Unlock()
+
+	// Check if there will be rule changes in traffic controller map
+	if len(tcMap) != len(m) {
+		ret = true
+	} else {
+		for res, tcs := range tcMap {
+			mTcs, ok := m[res]
+			if !ok {
+				ret = true
+				break
+			}
+			if len(tcs) != len(mTcs) {
+			    ret = true
+			    break
+			}
+			eqCount := 0
+			for _, tc := range tcs {
+				for _, mTc := range mTcs {
+					if tc.rule.equalsTo(mTc.rule) {
+						eqCount++
+						break
+					}
+				}
+			}
+			// If not every current rule can find a match in new rule, then we must be
+			// updating some different rules
+			if eqCount < len(tcs) {
+			    ret = true
+			    break
+			}
+		}
+	}
+
 	tcMap = m
-	return nil
+	return
 }
 
 // LoadRules loads the given flow rules to the rule manager, while all previous rules will be replaced.
-func LoadRules(rules []*Rule) (bool, error) {
-	// TODO: rethink the design
-	err := onRuleUpdate(rules)
-	return true, err
+//
+// return value:
+//
+// bool: Indicates whether loading succeeds. Return false if rules are same with the effective ones; otherwise, true. 
+// error: Errors. Loading will not happen if not nil.
+// []*Rule: failed rule list. It would be same as input rules if an error happens.
+func LoadRules(rules []*Rule) (bool, error, []*Rule) {
+	ret, err, failedRules := onRuleUpdate(rules)
+	return ret, err, failedRules
 }
 
 // getRules returns all the rules。Any changes of rules take effect for flow module
@@ -157,7 +193,7 @@ func GetRulesOfResource(res string) []Rule {
 
 // ClearRules clears all the rules in flow module.
 func ClearRules() error {
-	_, err := LoadRules(nil)
+	_, err, _ := LoadRules(nil)
 	return err
 }
 
@@ -227,39 +263,59 @@ func getTrafficControllerListFor(name string) []*TrafficShapingController {
 }
 
 // NotThreadSafe (should be guarded by the lock)
-func buildFlowMap(rules []*Rule) TrafficControllerMap {
-	m := make(TrafficControllerMap)
+func buildFlowMap(rules []*Rule) (m TrafficControllerMap, failedRules []*Rule) {
+	m = make(TrafficControllerMap)
 	if len(rules) == 0 {
-		return m
+		return
 	}
 
 	for _, rule := range rules {
+		if rule == nil {
+			continue
+		}
 		if err := IsValidRule(rule); err != nil {
+			failedRules = append(failedRules, rule)
 			logging.Warnf("Ignoring invalid flow rule: %v, reason: %s", rule, err.Error())
 			continue
 		}
+		rulesOfRes, exists := m[rule.Resource]
+
+		if exists {
+			// Deduplicate input rules
+			for _, tc := range rulesOfRes {
+				if rule.equalsTo(tc.rule) {
+				    rule = nil
+				    break
+				}
+			}
+			if rule == nil {
+			    continue
+			}
+		}
+
 		generator, supported := tcGenFuncMap[trafficControllerGenKey{
 			tokenCalculateStrategy: rule.TokenCalculateStrategy,
 			controlBehavior:        rule.ControlBehavior,
 		}]
 		if !supported {
+			failedRules = append(failedRules, rule)
 			logging.Warnf("Ignoring the rule due to unsupported control behavior: %v", rule)
 			continue
 		}
 		tsc := generator(rule)
 		if tsc == nil {
+			failedRules = append(failedRules, rule)
 			logging.Warnf("Ignoring the rule due to bad generated traffic controller: %v", rule)
 			continue
 		}
 
-		rulesOfRes, exists := m[rule.Resource]
 		if !exists {
 			m[rule.Resource] = []*TrafficShapingController{tsc}
 		} else {
 			m[rule.Resource] = append(rulesOfRes, tsc)
 		}
 	}
-	return m
+	return
 }
 
 // IsValidRule checks whether the given Rule is valid.

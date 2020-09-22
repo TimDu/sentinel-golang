@@ -23,7 +23,7 @@ func TestSetAndRemoveTrafficShapingGenerator(t *testing.T) {
 	assert.NoError(t, err)
 
 	resource := "test-customized-tc"
-	_, err = LoadRules([]*Rule{
+	_, err, _ = LoadRules([]*Rule{
 		{
 			Count:                  20,
 			MetricType:             QPS,
@@ -46,7 +46,7 @@ func TestSetAndRemoveTrafficShapingGenerator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotContains(t, tcGenFuncMap, cs)
 
-	_, _ = LoadRules([]*Rule{})
+	_, _, _ = LoadRules([]*Rule{})
 }
 
 func TestIsValidFlowRule(t *testing.T) {
@@ -88,7 +88,7 @@ func TestGetRules(t *testing.T) {
 			WarmUpPeriodSec:        0,
 			MaxQueueingTimeMs:      0,
 		}
-		if _, err := LoadRules([]*Rule{r1, r2}); err != nil {
+		if _, err, _ := LoadRules([]*Rule{r1, r2}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -132,7 +132,7 @@ func TestGetRules(t *testing.T) {
 			WarmUpPeriodSec:        0,
 			MaxQueueingTimeMs:      0,
 		}
-		if _, err := LoadRules([]*Rule{r1, r2}); err != nil {
+		if _, err, _ := LoadRules([]*Rule{r1, r2}); err != nil {
 			t.Fatal(err)
 		}
 		rs2 := getRules()
