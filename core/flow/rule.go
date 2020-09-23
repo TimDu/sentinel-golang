@@ -147,8 +147,12 @@ func (r *Rule) equalsTo(newRule *Rule) bool {
 		    return false
 		}
 	}
-	if r.RelationStrategy == AssociatedResource && r.RefResource != newRule.RefResource {
-		return false
+	switch r.RelationStrategy {
+	case CurrentResource:
+	case AssociatedResource:
+		if r.RefResource != newRule.RefResource {
+		    return false
+		}
 	}
 
 	return true
