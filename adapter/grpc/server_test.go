@@ -31,7 +31,7 @@ func TestStreamServerIntercept(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		var _, err = flow.LoadRules([]*flow.Rule{
+		var _, err, _ = flow.LoadRules([]*flow.Rule{
 			{
 				Resource:               "/grpc.testing.TestService/StreamingInputCall",
 				MetricType:             flow.QPS,
@@ -50,7 +50,7 @@ func TestStreamServerIntercept(t *testing.T) {
 	})
 
 	t.Run("fail", func(t *testing.T) {
-		var _, err = flow.LoadRules([]*flow.Rule{
+		var _, err, _ = flow.LoadRules([]*flow.Rule{
 			{
 				Resource:               "/grpc.testing.TestService/StreamingInputCall",
 				MetricType:             flow.QPS,
@@ -75,7 +75,7 @@ func TestUnaryServerIntercept(t *testing.T) {
 		FullMethod: "/grpc.testing.TestService/UnaryCall",
 	}
 	t.Run("success", func(t *testing.T) {
-		var _, err = flow.LoadRules([]*flow.Rule{
+		var _, err, _ = flow.LoadRules([]*flow.Rule{
 			{
 				Resource:               "/grpc.testing.TestService/UnaryCall",
 				MetricType:             flow.QPS,
@@ -104,7 +104,7 @@ func TestUnaryServerIntercept(t *testing.T) {
 		return "abc", nil
 	}
 	t.Run("fail", func(t *testing.T) {
-		var _, err = flow.LoadRules([]*flow.Rule{
+		var _, err, _ = flow.LoadRules([]*flow.Rule{
 			{
 				Resource:               "/grpc.testing.TestService/UnaryCall",
 				MetricType:             flow.QPS,

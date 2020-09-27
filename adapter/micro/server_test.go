@@ -55,7 +55,7 @@ func TestServerLimiter(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	_, err = flow.LoadRules([]*flow.Rule{
+	_, err, _ = flow.LoadRules([]*flow.Rule{
 		{
 			Resource:               req.Method(),
 			MetricType:             flow.QPS,
@@ -70,7 +70,7 @@ func TestServerLimiter(t *testing.T) {
 	var rsp = &proto.Response{}
 
 	t.Run("success", func(t *testing.T) {
-		var _, err = flow.LoadRules([]*flow.Rule{
+		var _, err, _ = flow.LoadRules([]*flow.Rule{
 			{
 				Resource:               req.Method(),
 				MetricType:             flow.QPS,
